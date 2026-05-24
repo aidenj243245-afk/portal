@@ -22,13 +22,15 @@ justify-content: space-between;
 align-items: center;
 }
 
+.logo {
+height: 38px;
+}
+
 .navbar-right {
 display: flex;
 align-items: center;
 gap: 12px;
 }
-
-.logo { height: 38px; }
 
 /* LAYOUT */
 .layout {
@@ -58,12 +60,13 @@ max-width: 1100px;
 .page { display: none; }
 .active-page { display: block; }
 
-/* LOGIN */
+/* LOGIN ANIMATION */
 .center {
 display: flex;
 justify-content: center;
 align-items: center;
 height: 100vh;
+transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
 .card {
@@ -75,27 +78,13 @@ width: 320px;
 text-align: center;
 }
 
-input {
-width: 100%;
-padding: 12px;
-margin-top: 10px;
-border-radius: 10px;
-border: 1px solid #d1d5db;
-font-size: 14px;
+.fade-out {
+opacity: 0;
+transform: translateY(-20px);
+pointer-events: none;
 }
 
-.btn {
-width: 100%;
-padding: 12px;
-margin-top: 15px;
-border: none;
-border-radius: 10px;
-background: #0f172a;
-color: white;
-cursor: pointer;
-}
-
-/* SECTIONS (your original structure restored) */
+/* SECTIONS (RESTORED) */
 .section {
 margin-bottom: 28px;
 }
@@ -121,9 +110,18 @@ grid-template-columns: 1fr 1fr;
 gap: 20px;
 }
 
-.full { grid-column: span 2; }
+.full {
+grid-column: span 2;
+}
 
-/* MODERN TOGGLE SWITCH */
+/* pending */
+.pending {
+font-style: italic;
+color: #6b7280;
+font-size: 14px;
+}
+
+/* SWITCH FIXED */
 .switch {
 position: relative;
 width: 46px;
@@ -173,21 +171,16 @@ padding: 14px 0;
 border-bottom: 1px solid #f1f1f1;
 }
 
-.setting-row:last-child {
-border-bottom: none;
+/* DASHBOARD ANIMATION */
+#dashboard {
+opacity: 0;
+transform: translateY(10px);
+transition: 0.5s ease;
 }
 
-/* LOADING */
-.loading {
-position: fixed;
-inset: 0;
-background: rgba(0,0,0,0.7);
-color: white;
-display: none;
-justify-content: center;
-align-items: center;
-font-size: 18px;
-z-index: 999;
+#dashboard.show {
+opacity: 1;
+transform: translateY(0);
 }
 
 /* POPUP */
@@ -205,45 +198,51 @@ transition: 0.3s;
 
 .popup.show { opacity: 1; }
 
-@media (max-width:800px){
-.layout { flex-direction: column; }
-.sidebar {
-width:100%;
-display:flex;
-justify-content:space-around;
+input {
+width: 100%;
+padding: 12px;
+margin-top: 10px;
+border-radius: 10px;
+border: 1px solid #d1d5db;
+font-size: 14px;
 }
-.main { padding: 14px; }
-.grid { grid-template-columns:1fr; }
-.full { grid-column: span 1; }
+
+.btn {
+width: 100%;
+padding: 12px;
+margin-top: 15px;
+border: none;
+border-radius: 10px;
+background: #0f172a;
+color: white;
+cursor: pointer;
 }
 </style>
 </head>
 
 <body>
 
-<div class="loading" id="loading">Signing in...</div>
-
 <!-- LOGIN -->
 <div id="login" class="center">
 <div class="card">
-<img src="logo.jpeg" style="width:120px;">
+<img src="logo.jpeg" style="width:120px;margin-bottom:10px;">
 <h2>Safeguard Login</h2>
 
-<input id="username" placeholder="Enter username">
+<input id="name" placeholder="Enter your name">
 <input id="password" type="password" placeholder="Enter password">
 
-<button class="btn" onclick="login(event)">Log In</button>
+<button class="btn" onclick="login()">Log In</button>
 </div>
 </div>
 
 <!-- DASHBOARD -->
-<div id="dashboard" style="display:none;">
+<div id="dashboard">
 
 <div class="navbar">
 <img src="logo.jpeg" class="logo">
 
 <div class="navbar-right">
-<span id="displayUser"></span>
+<span id="greeting"></span>
 
 <button onclick="logout()" style="
 background:#ef4444;
@@ -267,7 +266,7 @@ Logout
 
 <div class="main">
 
-<!-- ACCOUNTS (FULL RESTORED) -->
+<!-- ACCOUNTS (RESTORED STRUCTURE) -->
 <div id="accounts" class="page active-page">
 
 <div class="section">
@@ -276,21 +275,19 @@ Logout
 <div class="grid">
 <div>
 <b>FDIC Insured Checking</b><br>
-<small>May 12, 2026</small>
-<h2>+$2,499.16</h2>
+<h2>$2,499.16</h2>
 </div>
 
 <div>
 <b>Login Info</b><br>
-Username: <b id="userDisplay"></b><br>
-Password: <b id="passDisplay">••••••••</b>
+Name: <b id="userDisplay"></b><br>
+Password: <b>••••••••</b>
 </div>
 
 <div class="full">
 <b>Recent Transactions</b><br>
-Opening Deposit<br>
-<small>Inbound Transfer</small><br>
-<span style="color:#10b981;">+$2,499.16</span>
+<small class="pending">Pending Deposit</small><br>
+<span style="color:#10b981;">$2,499.16</span>
 </div>
 </div>
 </div>
@@ -346,8 +343,7 @@ Push Notifications
 </div>
 
 <input id="email" placeholder="Update Email">
-<input id="passwordSetting" type="password" placeholder="Update Password">
-<input id="phone" placeholder="Add Phone Number" oninput="formatPhone(this)">
+<input id="phone" placeholder="Add Phone Number">
 
 <button class="btn" onclick="saveSettings()">Save Changes</button>
 
@@ -362,82 +358,47 @@ Last updated: Never
 
 </div>
 </div>
-</div>
 
 <div id="popup" class="popup">Saved successfully</div>
 
 <script>
-function login(e){
-if(e) e.preventDefault();
+function login() {
+const name = document.getElementById("name").value;
+const pass = document.getElementById("password").value;
 
-const usernameField = document.getElementById("username");
-const passwordField = document.getElementById("password");
+if (!name || !pass) return alert("Enter both fields");
 
-const rawUsername = usernameField.value;
+document.getElementById("login").classList.add("fade-out");
 
-// DEBUG (you can remove later)
-console.log("Typed username:", rawUsername);
-
-let usernameInput = rawUsername.trim();
-
-if(usernameInput === ""){
-usernameInput = "user123";
-}
-
-// Extract name (letters only)
-let nameOnly = usernameInput.replace(/[^a-zA-Z]/g, "");
-
-if(nameOnly === ""){
-nameOnly = "User";
-}
-
-let formattedName =
-nameOnly.charAt(0).toUpperCase() + nameOnly.slice(1).toLowerCase();
-
-// Show dashboard
+setTimeout(() => {
 document.getElementById("login").style.display = "none";
-document.getElementById("dashboard").style.display = "block";
 
-// Set values
-document.getElementById("displayUser").innerText = "Hi, Jesus";
-document.getElementById("userDisplay").innerText = usernameInput;
-document.getElementById("passDisplay").innerText =
-passwordField.value || "••••";
+const dash = document.getElementById("dashboard");
+dash.classList.add("show");
 
-loadSettings();
+document.getElementById("greeting").innerText = "Hi, " + name;
+document.getElementById("userDisplay").innerText = name;
+
+}, 400);
 }
 
-function logout(){
-document.getElementById("dashboard").style.display="none";
-document.getElementById("login").style.display="flex";
+function logout() {
+location.reload();
 }
 
-function showPage(p){
-document.querySelectorAll(".page").forEach(pg=>pg.classList.remove("active-page"));
-document.getElementById(p).classList.add("active-page");
+function showPage(page) {
+document.querySelectorAll(".page").forEach(p => p.classList.remove("active-page"));
+document.getElementById(page).classList.add("active-page");
 }
 
-function saveSettings(){
-let data={
-alerts:alerts.checked,
-notifications:notifications.checked,
-email:email.value,
-password:passwordSetting.value,
-phone:phone.value,
-lastUpdated:new Date().toLocaleString()
-};
-
-localStorage.setItem("settings",JSON.stringify(data));
-lastUpdated.innerText="Last updated: "+data.lastUpdated;
-
+function saveSettings() {
+const popup = document.getElementById("popup");
 popup.classList.add("show");
-setTimeout(()=>popup.classList.remove("show"),2000);
-}
 
-function formatPhone(i){
-let d=i.value.replace(/\D/g,"").substring(0,10);
-if(d.length>6) i.value=`(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`;
-else if(d.length>3) i.value=`(${d.slice(0,3)}) ${d.slice(3)}`;
+const now = new Date().toLocaleString();
+document.getElementById("lastUpdated").innerText = "Last updated: " + now;
+
+setTimeout(() => popup.classList.remove("show"), 2000);
 }
 </script>
 
