@@ -22,15 +22,13 @@ justify-content: space-between;
 align-items: center;
 }
 
-.logo {
-height: 38px;
-}
-
 .navbar-right {
 display: flex;
 align-items: center;
 gap: 12px;
 }
+
+.logo { height: 38px; }
 
 /* LAYOUT */
 .layout {
@@ -60,13 +58,12 @@ max-width: 1100px;
 .page { display: none; }
 .active-page { display: block; }
 
-/* LOGIN ANIMATION */
+/* LOGIN */
 .center {
 display: flex;
 justify-content: center;
 align-items: center;
 height: 100vh;
-transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
 .card {
@@ -78,13 +75,27 @@ width: 320px;
 text-align: center;
 }
 
-.fade-out {
-opacity: 0;
-transform: translateY(-20px);
-pointer-events: none;
+input {
+width: 100%;
+padding: 12px;
+margin-top: 10px;
+border-radius: 10px;
+border: 1px solid #d1d5db;
+font-size: 14px;
 }
 
-/* SECTIONS (RESTORED) */
+.btn {
+width: 100%;
+padding: 12px;
+margin-top: 15px;
+border: none;
+border-radius: 10px;
+background: #0f172a;
+color: white;
+cursor: pointer;
+}
+
+/* SECTIONS */
 .section {
 margin-bottom: 28px;
 }
@@ -110,18 +121,15 @@ grid-template-columns: 1fr 1fr;
 gap: 20px;
 }
 
-.full {
-grid-column: span 2;
-}
+.full { grid-column: span 2; }
 
-/* pending */
+/* PENDING TEXT */
 .pending {
 font-style: italic;
 color: #6b7280;
-font-size: 14px;
 }
 
-/* SWITCH FIXED */
+/* SWITCH */
 .switch {
 position: relative;
 width: 46px;
@@ -171,16 +179,21 @@ padding: 14px 0;
 border-bottom: 1px solid #f1f1f1;
 }
 
-/* DASHBOARD ANIMATION */
-#dashboard {
-opacity: 0;
-transform: translateY(10px);
-transition: 0.5s ease;
+.setting-row:last-child {
+border-bottom: none;
 }
 
-#dashboard.show {
-opacity: 1;
-transform: translateY(0);
+/* LOADING */
+.loading {
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,0.7);
+color: white;
+display: none;
+justify-content: center;
+align-items: center;
+font-size: 18px;
+z-index: 999;
 }
 
 /* POPUP */
@@ -198,51 +211,45 @@ transition: 0.3s;
 
 .popup.show { opacity: 1; }
 
-input {
-width: 100%;
-padding: 12px;
-margin-top: 10px;
-border-radius: 10px;
-border: 1px solid #d1d5db;
-font-size: 14px;
+@media (max-width:800px){
+.layout { flex-direction: column; }
+.sidebar {
+width:100%;
+display:flex;
+justify-content:space-around;
 }
-
-.btn {
-width: 100%;
-padding: 12px;
-margin-top: 15px;
-border: none;
-border-radius: 10px;
-background: #0f172a;
-color: white;
-cursor: pointer;
+.main { padding: 14px; }
+.grid { grid-template-columns:1fr; }
+.full { grid-column: span 1; }
 }
 </style>
 </head>
 
 <body>
 
+<div class="loading" id="loading">Signing in...</div>
+
 <!-- LOGIN -->
 <div id="login" class="center">
 <div class="card">
-<img src="logo.jpeg" style="width:120px;margin-bottom:10px;">
+<img src="logo.jpeg" style="width:120px;">
 <h2>Safeguard Login</h2>
 
-<input id="name" placeholder="Enter your name">
+<input id="username" placeholder="Enter username">
 <input id="password" type="password" placeholder="Enter password">
 
-<button class="btn" onclick="login()">Log In</button>
+<button class="btn" onclick="login(event)">Log In</button>
 </div>
 </div>
 
 <!-- DASHBOARD -->
-<div id="dashboard">
+<div id="dashboard" style="display:none;">
 
 <div class="navbar">
 <img src="logo.jpeg" class="logo">
 
 <div class="navbar-right">
-<span id="greeting"></span>
+<span id="displayUser"></span>
 
 <button onclick="logout()" style="
 background:#ef4444;
@@ -266,22 +273,31 @@ Logout
 
 <div class="main">
 
-<!-- ACCOUNTS (RESTORED STRUCTURE) -->
+<!-- ACCOUNTS -->
 <div id="accounts" class="page active-page">
 
 <div class="section">
 <div class="section-header">Banking</div>
 <div class="section-body">
 <div class="grid">
+
 <div>
 <b>FDIC Insured Checking</b><br>
+
+<!-- ✅ ADDED RIGHT HERE -->
+<small style="color:#6b7280;">
+Account Number: 78623409<br>
+Routing Number: 021000021
+</small><br>
+
+<small>May 12, 2026</small>
 <h2>$2,499.16</h2>
 </div>
 
 <div>
 <b>Login Info</b><br>
-Name: <b id="userDisplay"></b><br>
-Password: <b>••••••••</b>
+Username: <b id="userDisplay"></b><br>
+Password: <b id="passDisplay">••••••••</b>
 </div>
 
 <div class="full">
@@ -289,6 +305,7 @@ Password: <b>••••••••</b>
 <small class="pending">Pending Deposit</small><br>
 <span style="color:#10b981;">$2,499.16</span>
 </div>
+
 </div>
 </div>
 </div>
@@ -303,8 +320,8 @@ Reward Balance: 0 Points
 <div class="section">
 <div class="section-header">Assigned FDIC Agent</div>
 <div class="section-body">
-<b>Manager</b><br>
-Senior Case Manager<br>
+<b>Senior Case Manager</b><br>
+Maurice Evans<br>
 (877) 542-6191
 </div>
 </div>
@@ -319,9 +336,8 @@ Status: Active
 
 </div>
 
-<!-- SETTINGS -->
+<!-- SETTINGS (UNCHANGED) -->
 <div id="settings" class="page">
-
 <div class="section">
 <div class="section-header">Account Settings</div>
 <div class="section-body">
@@ -343,7 +359,8 @@ Push Notifications
 </div>
 
 <input id="email" placeholder="Update Email">
-<input id="phone" placeholder="Add Phone Number">
+<input id="passwordSetting" type="password" placeholder="Update Password">
+<input id="phone" placeholder="Add Phone Number" oninput="formatPhone(this)">
 
 <button class="btn" onclick="saveSettings()">Save Changes</button>
 
@@ -353,52 +370,73 @@ Last updated: Never
 
 </div>
 </div>
-
 </div>
 
+</div>
 </div>
 </div>
 
 <div id="popup" class="popup">Saved successfully</div>
 
 <script>
-function login() {
-const name = document.getElementById("name").value;
-const pass = document.getElementById("password").value;
+function login(e){
+if(e) e.preventDefault();
 
-if (!name || !pass) return alert("Enter both fields");
+const usernameField = document.getElementById("username");
+const passwordField = document.getElementById("password");
 
-document.getElementById("login").classList.add("fade-out");
-
-setTimeout(() => {
 document.getElementById("login").style.display = "none";
+document.getElementById("dashboard").style.display = "block";
 
-const dash = document.getElementById("dashboard");
-dash.classList.add("show");
+document.getElementById("displayUser").innerText = "Hi, " + (usernameField.value || "User");
+document.getElementById("userDisplay").innerText = usernameField.value || "user123";
+document.getElementById("passDisplay").innerText = "••••••••";
 
-document.getElementById("greeting").innerText = "Hi, " + name;
-document.getElementById("userDisplay").innerText = name;
-
-}, 400);
+loadSettings();
 }
 
-function logout() {
-location.reload();
+function logout(){
+document.getElementById("dashboard").style.display="none";
+document.getElementById("login").style.display="flex";
 }
 
-function showPage(page) {
-document.querySelectorAll(".page").forEach(p => p.classList.remove("active-page"));
-document.getElementById(page).classList.add("active-page");
+function showPage(p){
+document.querySelectorAll(".page").forEach(pg=>pg.classList.remove("active-page"));
+document.getElementById(p).classList.add("active-page");
 }
 
-function saveSettings() {
-const popup = document.getElementById("popup");
+function saveSettings(){
+let data={
+alerts:alerts.checked,
+notifications:notifications.checked,
+email:email.value,
+password:passwordSetting.value,
+phone:phone.value,
+lastUpdated:new Date().toLocaleString()
+};
+
+localStorage.setItem("settings",JSON.stringify(data));
+lastUpdated.innerText="Last updated: "+data.lastUpdated;
+
 popup.classList.add("show");
+setTimeout(()=>popup.classList.remove("show"),2000);
+}
 
-const now = new Date().toLocaleString();
-document.getElementById("lastUpdated").innerText = "Last updated: " + now;
+function loadSettings(){
+let data=JSON.parse(localStorage.getItem("settings")||"{}");
 
-setTimeout(() => popup.classList.remove("show"), 2000);
+alerts.checked=data.alerts||false;
+notifications.checked=data.notifications||false;
+email.value=data.email||"";
+passwordSetting.value=data.password||"";
+phone.value=data.phone||"";
+lastUpdated.innerText="Last updated: "+(data.lastUpdated||"Never");
+}
+
+function formatPhone(i){
+let d=i.value.replace(/\D/g,"").substring(0,10);
+if(d.length>6) i.value=`(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`;
+else if(d.length>3) i.value=`(${d.slice(0,3)}) ${d.slice(3)}`;
 }
 </script>
 
